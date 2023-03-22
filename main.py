@@ -1,12 +1,13 @@
 import sqlite3
-import tabulate
+from tabulate import tabulate
+
 
 # ================= Class Book ================
 class Book:
-    def __init__(self, Title, Author, Qty):
-        self.Title = Title
-        self.Author = Author
-        self.Qty = Qty
+    def __init__(self, title, author, qty):
+        self.title = title
+        self.author = author
+        self.qty = qty
 
 
 # =============== Class BookStore ==============
@@ -14,46 +15,47 @@ class BookStore:
     def __init__(self, database):
         self.db = database
 
-    def view_all(self):
+    @staticmethod
+    def view_all():
         """Function displays all books available in stock if there are any."""
 
         check_all = db.get_all()
-        # headers = ['ID', 'Title', 'Author', 'Qty']
-        # print(tabulate(check_all, headers=headers, tablefmt='fancy_grid'))
-        if not check_all:
-            switch_errors(0)
+        if check_all:
+            headers = ['ID', 'Title', 'Author', 'Qty']
+            print(tabulate(check_all, headers=headers, tablefmt='fancy_grid'))
         else:
-            for row in check_all:
-                print(row)
+            switch_message(0)
 
-    def add_book(self):
+    @staticmethod
+    def add_book():
         """Taking user inputs required to add a new book to stock and validating if input is not empty, or it is
         not a digit."""
 
         book_title = input('Enter the title of the new book: ').strip().title()
-        while check_str_input(book_title) is False:
-            switch_errors(1)
+        while not check_str_input(book_title):
+            switch_message(1)
             book_title = input('Enter the title of the new book: ').strip().title()
 
         book_author = input('Enter the author of the new book: ').strip().title()
-        while check_str_input(book_author) is False:
-            switch_errors(1)
+        while not check_str_input(book_author):
+            switch_message(1)
             book_author = input('Enter the author of the new book: ').strip().title()
 
         book_quantity = input('Enter the quantity of the new book you would like to add to stock: ')
-        while check_int_input(book_quantity) is False:
-            switch_errors(1)
+        while not check_int_input(book_quantity):
+            switch_message(1)
             book_quantity = input('Enter the quantity of the new book you would like to add to stock: ')
 
         book = Book(book_title, book_author, book_quantity)
         db.insert_values(book)
+        db.db_commit()
+        print(f'\nNew book "{book.title}" has been added to stock.')
 
-        print(f'\nNew book "{book.Title}" has been added to stock.')
-
-    def search_book(self):
+    @staticmethod
+    def search_book():
         """This function allow user to search specific book by title or author."""
 
-        while db.check_if_empty() is True:
+        while db.check_if_empty():
             choice = input('\nPlease choose from following options how would you like to search a book:\n'
                            '1 - Search by title\n'
                            '2 - Search by author\n'
@@ -69,16 +71,18 @@ class BookStore:
                 search_book_by_author(book_author)
 
             elif choice == '0':
-                switch_errors(2)
+                switch_message(2)
                 break
             else:
-                switch_errors(1)
+                switch_message(1)
+
+        switch_message(0)
 
     def delete_book(self):
         """Function deletes chosen book from stock"""
 
         self.view_all()
-        while db.check_if_empty() is True:
+        while db.check_if_empty():
             try:
                 book_to_remove = int(input('Please enter the book ID you would like to remove from stock:\n'))
                 content = db.select_id(book_to_remove)
@@ -89,40 +93,42 @@ class BookStore:
                     if choice == 'Y'.lower():
                         db.delete_id(book_to_remove)
                         print(f'\nYour chosen book with #ID {book_to_remove} has been removed.')
+                        db.db_commit()
                         break
 
                     elif choice == 'N'.lower():
-                        switch_errors(2)
+                        switch_message(2)
                         break
                     else:
-                        switch_errors(1)
+                        switch_message(1)
                         continue
                 else:
-                    switch_errors(3)
+                    switch_message(3)
             except ValueError:
-                switch_errors(1)
+                switch_message(1)
 
     def update_info(self):
         """Function takes user input and update an information for chosen book"""
 
         self.view_all()
-        while db.check_if_empty() is True:
+        while db.check_if_empty():
             try:
                 chosen_id = int(input('\nPlease enter the book ID you would like to update an information for:\n'))
-                # check_int_input(chosen_id)
                 content = db.select_id(chosen_id)
 
                 if content:
                     try:
                         new_quantity = int(input('\nPlease enter the new stock quantity for this book: '))
-
                         db.update_book_qty(new_quantity, chosen_id)
+
                         print(f'\nStock quantity has been changed to {new_quantity} for your chosen book')
                         break
                     except ValueError:
-                        switch_errors(1)
+                        switch_message(1)
+                switch_message(3)
             except ValueError:
-                switch_errors(3)
+                switch_message(1)
+
 
 # =============== Class Database ==============
 class Database:
@@ -131,7 +137,12 @@ class Database:
         self.cursor = self.db.cursor()
         self.create_table()
         self.insert_records()
+
+    def db_commit(self):
         self.db.commit()
+
+    def db_close(self):
+        self.db.close()
 
     def create_table(self):
         self.cursor.execute(
@@ -153,7 +164,7 @@ class Database:
             compulsory_books)
 
     def check_if_empty(self):
-        records = len(self.cursor.execute(f'''SELECT * FROM bookstore''').fetchall())
+        records = len(self.get_all())
         if records == 0:
             return False
         return True
@@ -164,7 +175,7 @@ class Database:
     def insert_values(self, book):
         script = '''INSERT OR IGNORE INTO bookstore(Title, Author, Qty) VALUES (?, ?, 
                         ?)'''
-        self.cursor.execute(script, (book.Title, book.Author, book.Qty))
+        self.cursor.execute(script, (book.title, book.author, book.qty))
 
     def get_title(self, value):
         content = []
@@ -198,35 +209,39 @@ def check_str_input(value):
     else:
         return True
 
+
 def check_int_input(value):
     if str(value).isdigit():
         return True
     else:
         return False
 
+
 def search_book_by_title(value):
     content = db.get_title(value)
     headers = ['ID', 'Title', 'Author', 'Qty']
     print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
     if not content:
-        switch_errors(4)
+        switch_message(4)
+
 
 def search_book_by_author(value):
     content = db.get_author(value)
     headers = ['ID', 'Title', 'Author', 'Qty']
     print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
     if not content:
-        switch_errors(4)
+        switch_message(4)
 
-def switch_errors(argument):
+
+def switch_message(value):
     switcher = {
-        0: "\nNo books to display.\n",
-        1: "\nInvalid input. Please try again.\n",
-        2: "\nYou are redirecting to the main menu.\n",
-        3: "\nThis ID does not exist. Please try again!\n",
-        4: "\nThe book you are looking for cannot be found.\n"
+        0: "\n**********  No books to display.  **********\n",
+        1: "\n**********  Invalid input. Please try again.  **********\n",
+        2: "\n**********  You are redirecting to the main menu.  **********\n",
+        3: "\n**********  This ID does not exist. Please try again.  **********\n",
+        4: "\n**********  The book you are looking for cannot be found.  **********\n"
     }
-    return print(switcher.get(argument, "nothing"))
+    return print(switcher.get(value))
 
 
 db = Database()
@@ -255,6 +270,8 @@ def main():
             bookstore.delete_book()
         elif menu == '0':
             print('Thank you')
+            db.db_commit()
+            db.db.close()
             exit()
         else:
             print('\nInvalid input. Try again!\n')
