@@ -63,12 +63,15 @@ class BookStore:
                            ':')
 
             if choice == '1':
+
+                subject = 'Title'
                 book_title = input('Enter the title of the book you would like to search for: ')
-                search_book_by_title(book_title)
+                search(subject, book_title)
 
             elif choice == '2':
+                subject = 'Author'
                 book_author = input('Enter the author of the book you would like to search for: ')
-                search_book_by_author(book_author)
+                search(subject, book_author)
 
             elif choice == '0':
                 switch_message(2)
@@ -108,7 +111,7 @@ class BookStore:
                 switch_message(1)
 
     def update_info(self):
-        """Function takes user input and update an information for chosen book"""
+        """Function updates an information for chosen book"""
 
         self.view_all()
         while db.check_if_empty():
@@ -177,17 +180,10 @@ class Database:
                         ?)'''
         self.cursor.execute(script, (book.title, book.author, book.qty))
 
-    def get_title(self, value):
+    def get_book(self, subject, word):
         content = []
         for row in self.cursor.execute(
-                f'''SELECT * FROM bookstore WHERE Title LIKE "%{value}%" '''):
-            content.append(row)
-        return content
-
-    def get_author(self, value):
-        content = []
-        for row in self.cursor.execute(
-                f'''SELECT * FROM bookstore WHERE Author LIKE "%{value}%" '''):
+                f'''SELECT * FROM bookstore WHERE {subject} LIKE "%{word}%" '''):
             content.append(row)
         return content
 
@@ -217,19 +213,12 @@ def check_int_input(value):
         return False
 
 
-def search_book_by_title(value):
-    content = db.get_title(value)
-    headers = ['ID', 'Title', 'Author', 'Qty']
-    print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
-    if not content:
-        switch_message(4)
-
-
-def search_book_by_author(value):
-    content = db.get_author(value)
-    headers = ['ID', 'Title', 'Author', 'Qty']
-    print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
-    if not content:
+def search(subject, value):
+    content = db.get_book(subject, value)
+    if content:
+        headers = ['ID', 'Title', 'Author', 'Qty']
+        print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
+    else:
         switch_message(4)
 
 
