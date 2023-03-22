@@ -1,6 +1,9 @@
 import sqlite3
 from tabulate import tabulate
 
+# TODO Validate if user input is a digit and is bigger than 0.
+# TODO Check if entered book title already exists in database.
+# TODO Separate classes to modules.
 
 # ================= Class Book ================
 class Book:
@@ -18,7 +21,6 @@ class BookStore:
     @staticmethod
     def view_all():
         """Function displays all books available in stock if there are any."""
-
         check_all = db.get_all()
         if check_all:
             headers = ['ID', 'Title', 'Author', 'Qty']
@@ -30,7 +32,6 @@ class BookStore:
     def add_book():
         """Taking user inputs required to add a new book to stock and validating if input is not empty, or it is
         not a digit."""
-
         book_title = input('Enter the title of the new book: ').strip().title()
         while not check_str_input(book_title):
             switch_message(1)
@@ -41,10 +42,10 @@ class BookStore:
             switch_message(1)
             book_author = input('Enter the author of the new book: ').strip().title()
 
-        book_quantity = input('Enter the quantity of the new book you would like to add to stock: ')
+        book_quantity = input('Enter the quantity of the new book you would like to add to stock: ').strip()
         while not check_int_input(book_quantity):
             switch_message(1)
-            book_quantity = input('Enter the quantity of the new book you would like to add to stock: ')
+            book_quantity = input('Enter the quantity of the new book you would like to add to stock: ').strip()
 
         book = Book(book_title, book_author, book_quantity)
         db.insert_values(book)
@@ -95,7 +96,7 @@ class BookStore:
 
                     if choice == 'Y'.lower():
                         db.delete_id(book_to_remove)
-                        print(f'\nYour chosen book with #ID {book_to_remove} has been removed.')
+                        print(f'\nYour chosen book with #ID{book_to_remove} has been removed.')
                         db.db_commit()
                         break
 
@@ -140,6 +141,7 @@ class Database:
         self.cursor = self.db.cursor()
         self.create_table()
         self.insert_records()
+        self.db.commit()
 
     def db_commit(self):
         self.db.commit()
@@ -154,7 +156,7 @@ class Database:
             '            INTEGER )')
 
     def insert_records(self):
-        """This function inserts all compulsory books from the list into a table."""
+        """This method inserts all compulsory books from the list into a table."""
 
         compulsory_books = [(1, 'A Tale of Two Cities', 'Charles Dickens', 30),
                             (2, 'Harry Potter and the Philosopher`s Stone', 'J.K. Rowling', 40),
@@ -167,20 +169,24 @@ class Database:
             compulsory_books)
 
     def check_if_empty(self):
+        """Method checks if there are any records in the database"""
         records = len(self.get_all())
         if records == 0:
             return False
         return True
 
     def get_all(self):
+        """Method selects and returns all records from database."""
         return self.cursor.execute(f'''SELECT * FROM bookstore''').fetchall()
 
     def insert_values(self, book):
+        """Method inserts to database parameters passed from other function with user inputs"""
         script = '''INSERT OR IGNORE INTO bookstore(Title, Author, Qty) VALUES (?, ?, 
                         ?)'''
         self.cursor.execute(script, (book.title, book.author, book.qty))
 
     def get_book(self, subject, word):
+        """Method returns a list of selected records from database"""
         content = []
         for row in self.cursor.execute(
                 f'''SELECT * FROM bookstore WHERE {subject} LIKE "%{word}%" '''):
@@ -188,18 +194,22 @@ class Database:
         return content
 
     def select_id(self, value):
+        """Method selects ID column from a table with specified ID"""
+
         return self.cursor.execute(f'SELECT ID FROM bookstore WHERE ID = {value}').fetchall()
 
     def delete_id(self, book_to_remove):
         self.cursor.execute(f'''DELETE FROM bookstore WHERE ID = {book_to_remove}''')
 
     def update_book_qty(self, book_qty, rowid):
+        """Method updates qty information for the book with selected ID"""
         self.cursor.execute(
             f'''UPDATE bookstore SET qty = {book_qty} WHERE rowid = {rowid} ''')
 
 
 # ================= Functions ================
 def check_str_input(value):
+    """Function checks/validate user input"""
     if value == '' or value.isdigit():
         return False
     else:
@@ -207,6 +217,7 @@ def check_str_input(value):
 
 
 def check_int_input(value):
+    """Function checks/validate user input"""
     if str(value).isdigit():
         return True
     else:
@@ -214,6 +225,7 @@ def check_int_input(value):
 
 
 def search(subject, value):
+    """Function takes arguments from other function and display them in tabulate"""
     content = db.get_book(subject, value)
     if content:
         headers = ['ID', 'Title', 'Author', 'Qty']
@@ -223,6 +235,7 @@ def search(subject, value):
 
 
 def switch_message(value):
+    """Function contains different print messages and use them in various parts of the program."""
     switcher = {
         0: "\n**********  No books to display.  **********\n",
         1: "\n**********  Invalid input. Please try again.  **********\n",
