@@ -85,6 +85,28 @@ class BookStore:
 
         switch_message(0)
 
+    def update_info(self):
+        """Function updates an information for chosen book"""
+
+        self.view_all()
+        while db.check_if_empty():
+            try:
+                chosen_id = int(input('\nPlease enter the book ID you would like to update an information for:\n'))
+                content = db.select_id(chosen_id)
+
+                if content:
+                    try:
+                        new_quantity = int(input('\nPlease enter the new stock quantity for this book: '))
+                        db.update_book_qty(new_quantity, chosen_id)
+
+                        print(f'\nStock quantity has been changed to {new_quantity} for your chosen book')
+                        break
+                    except ValueError:
+                        switch_message(1)
+                switch_message(3)
+            except ValueError:
+                switch_message(1)
+
     def delete_book(self):
         """Function deletes chosen book from stock"""
 
@@ -114,27 +136,19 @@ class BookStore:
             except ValueError:
                 switch_message(1)
 
-    def update_info(self):
-        """Function updates an information for chosen book"""
+    @staticmethod
+    def show_low_stock():
+        print_low_stock()
+        content = db.select_low_stock()
 
-        self.view_all()
-        while db.check_if_empty():
-            try:
-                chosen_id = int(input('\nPlease enter the book ID you would like to update an information for:\n'))
-                content = db.select_id(chosen_id)
+        if content:
+            choice = input('\nWould you like to generate a report with displayed records? Y / N: ').lower()
 
-                if content:
-                    try:
-                        new_quantity = int(input('\nPlease enter the new stock quantity for this book: '))
-                        db.update_book_qty(new_quantity, chosen_id)
-
-                        print(f'\nStock quantity has been changed to {new_quantity} for your chosen book')
-                        break
-                    except ValueError:
-                        switch_message(1)
-                switch_message(3)
-            except ValueError:
-                switch_message(1)
+            if choice == 'Y'.lower():
+                print('\nThis option do not work yet, will be fixed soon.')
+                # generate_report() - Need to be fixed.
+            else:
+                switch_message(2)
 
 
 # =============== Class Database ==============
@@ -162,10 +176,10 @@ class Database:
         """This method inserts all compulsory books from the list into a table."""
 
         compulsory_books = [(1, 'A Tale of Two Cities', 'Charles Dickens', 30),
-                            (2, 'Harry Potter and the Philosopher`s Stone', 'J.K. Rowling', 40),
+                            (2, 'Harry Potter and the Philosopher`s Stone', 'J.K. Rowling', 5),
                             (3, 'The Lion, the Witch and the Wardrobe', 'C.S. Lewis', 25),
                             (4, 'The Lord of the Rings', 'J.R.R. Tolkien', 37),
-                            (5, 'Alice in Wonderland', 'Lewis Carroll', 12)]
+                            (5, 'Alice in Wonderland', 'Lewis Carroll', 4)]
 
         self.cursor.executemany(
             '''INSERT OR REPLACE INTO bookstore(ID, Title, Author, Qty) VALUES(?, ?, ?, ?)''',
@@ -198,7 +212,6 @@ class Database:
 
     def select_id(self, value):
         """Method selects ID column from a table with specified ID"""
-
         return self.cursor.execute(f'SELECT ID FROM bookstore WHERE ID = {value}').fetchall()
 
     def delete_id(self, book_to_remove):
@@ -208,6 +221,10 @@ class Database:
         """Method updates qty information for the book with selected ID"""
         self.cursor.execute(
             f'''UPDATE bookstore SET qty = {book_qty} WHERE rowid = {rowid} ''')
+
+    def select_low_stock(self):
+        """Method selects books with stock lower than 5"""
+        return self.cursor.execute(f'SELECT * FROM bookstore WHERE Qty < 5').fetchall()
 
 
 # ================= Functions ================
@@ -221,7 +238,6 @@ def check_str_input(value):
 
 def check_int_input(value):
     """Function checks/validate user input"""
-
     if str(value).isdigit() and int(value) > 0:
         return True
     else:
@@ -230,14 +246,31 @@ def check_int_input(value):
 
 def search(subject, value):
     """Function takes arguments from other function and display them in tabulate"""
-
     content = db.get_book(subject, value)
     if content:
-        headers = ['ID', 'Title', 'Author', 'Qty']
-        print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
+        print_tabulate(content)
     else:
         switch_message(4)
 
+def print_low_stock():
+    """Function prints selected low stock books and write to file"""
+    content = db.select_low_stock()
+    if content:
+        print_tabulate(content)
+    else:
+        switch_message(0)
+
+# def generate_report():
+#     headers = ['ID', 'Title', 'Author', 'Qty']
+#     content = db.select_low_stock()
+#     with open('Report.txt', 'w') as output_file:
+#         text = (tabulate(content, headers=headers, tablefmt='fancy_grid'))
+#         output_file.write(text)
+#         print('\nFile has been generated')
+def print_tabulate(content):
+    """Function prints selected books in tabulate mode"""
+    headers = ['ID', 'Title', 'Author', 'Qty']
+    print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
 
 def switch_message(value):
     """Function contains different print messages and use them in various parts of the program."""
@@ -278,7 +311,7 @@ def option_five():
 
 
 def option_six():
-    pass
+    bookstore.show_low_stock()
 
 
 def option_seven():
@@ -299,7 +332,7 @@ def main():
           '3 - Search books\n'
           '4 - Update book information\n'
           '5 - Delete a book\n'
-          '6 - Generate a report\n'
+          '6 - Low stock books - report\n'
           '7 - Order books\n'
           '0 - Exit\n')
 
