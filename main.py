@@ -4,6 +4,11 @@ from tabulate import tabulate
 # TODO Validate if user input is a digit and is bigger than 0.
 # TODO Check if entered book title already exists in database.
 # TODO Separate classes to modules.
+# TODO Use Sphinx to create a documentations
+# TODO Create a function to generate a report to file CSV/PDF - in progress.
+# TODO Create a function to send an email and order more books ( use smtplib library ) - in progress.
+# TODO Create GUI using Tkinter.
+
 
 # ================= Class Book ================
 class Book:
