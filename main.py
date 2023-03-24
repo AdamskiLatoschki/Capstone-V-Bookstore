@@ -1,7 +1,7 @@
 import sqlite3
 from tabulate import tabulate
 
-# TODO Validate if user input is a digit and is bigger than 0.
+
 # TODO Check if entered book title already exists in database.
 # TODO Separate classes to modules.
 # TODO Use Sphinx to create a documentations
@@ -23,20 +23,20 @@ class BookStore:
     def __init__(self, database):
         self.db = database
 
-    @staticmethod
-    def view_all():
+    def view_all(self):
         """Function displays all books available in stock if there are any."""
-        check_all = db.get_all()
+
+        check_all = self.db.get_all()
         if check_all:
             headers = ['ID', 'Title', 'Author', 'Qty']
             print(tabulate(check_all, headers=headers, tablefmt='fancy_grid'))
         else:
             switch_message(0)
 
-    @staticmethod
-    def add_book():
+    def add_book(self):
         """Taking user inputs required to add a new book to stock and validating if input is not empty, or it is
         not a digit."""
+
         book_title = input('Enter the title of the new book: ').strip().title()
         while not check_str_input(book_title):
             switch_message(1)
@@ -53,15 +53,14 @@ class BookStore:
             book_quantity = input('Enter the quantity of the new book you would like to add to stock: ').strip()
 
         book = Book(book_title, book_author, book_quantity)
-        db.insert_values(book)
-        db.db_commit()
+        self.db.insert_values(book)
+        self.db.db_commit()
         print(f'\nNew book "{book.title}" has been added to stock.')
 
-    @staticmethod
-    def search_book():
+    def search_book(self):
         """This function allow user to search specific book by title or author."""
 
-        while db.check_if_empty():
+        while self.db.check_if_empty():
             choice = input('\nPlease choose from following options how would you like to search a book:\n'
                            '1 - Search by title\n'
                            '2 - Search by author\n'
@@ -69,7 +68,6 @@ class BookStore:
                            ':')
 
             if choice == '1':
-
                 subject = 'Title'
                 book_title = input('Enter the title of the book you would like to search for: ')
                 search(subject, book_title)
@@ -223,7 +221,8 @@ def check_str_input(value):
 
 def check_int_input(value):
     """Function checks/validate user input"""
-    if str(value).isdigit():
+
+    if str(value).isdigit() and int(value) > 0:
         return True
     else:
         return False
@@ -231,6 +230,7 @@ def check_int_input(value):
 
 def search(subject, value):
     """Function takes arguments from other function and display them in tabulate"""
+
     content = db.get_book(subject, value)
     if content:
         headers = ['ID', 'Title', 'Author', 'Qty']
@@ -255,34 +255,78 @@ db = Database()
 bookstore = BookStore(db)
 
 
+# ================= Main Program ================
+
+def option_one():
+    bookstore.view_all()
+
+
+def option_two():
+    bookstore.add_book()
+
+
+def option_three():
+    bookstore.search_book()
+
+
+def option_four():
+    bookstore.update_info()
+
+
+def option_five():
+    bookstore.delete_book()
+
+
+def option_six():
+    pass
+
+
+def option_seven():
+    pass
+
+
+def option_zero():
+    print('Thank you')
+    db.db_commit()
+    db.db.close()
+    exit()
+
+
 def main():
-    while True:
-        menu = input(f'\nPlease choose an option:\n'
-                     '1 - Display all books\n'
-                     '2 - Add a new book\n'
-                     '3 - Search books\n'
-                     '4 - Update book information\n'
-                     '5 - Delete a book\n'
-                     '0 - Exit\n'
-                     ':')
-        if menu == '1':
-            bookstore.view_all()
-        elif menu == '2':
-            bookstore.add_book()
-        elif menu == '3':
-            bookstore.search_book()
-        elif menu == '4':
-            bookstore.update_info()
-        elif menu == '5':
-            bookstore.delete_book()
-        elif menu == '0':
-            print('Thank you')
-            db.db_commit()
-            db.db.close()
-            exit()
-        else:
-            print('\nInvalid input. Try again!\n')
+    print('\n**********  Welcome in the Bookstore  **********')
+    print(f'\n1 - Display all books\n'
+          '2 - Add a new book\n'
+          '3 - Search books\n'
+          '4 - Update book information\n'
+          '5 - Delete a book\n'
+          '6 - Generate a report\n'
+          '7 - Order books\n'
+          '0 - Exit\n')
+
+    # if __name__ == "__main__":
+    #     main()
 
 
-if __name__ == "__main__":
+while True:
     main()
+    menu_choice = input('Please choose one of the following options:\n')
+
+    match menu_choice:
+        case '1':
+            option_one()
+        case '2':
+            option_two()
+        case '3':
+            option_three()
+        case '4':
+            option_four()
+        case '5':
+            option_five()
+        case '6':
+            option_six()
+        case '7':
+            option_seven()
+        case '0':
+            option_zero()
+        case _:
+            switch_message(1)
