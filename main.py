@@ -1,11 +1,11 @@
 import sqlite3
 from tabulate import tabulate
+import csv
 
 
 # TODO Check if entered book title already exists in database.
 # TODO Separate classes to modules.
 # TODO Use Sphinx to create a documentations
-# TODO Create a function to generate a report to file CSV/PDF - in progress.
 # TODO Create a function to send an email and order more books ( use smtplib library ) - in progress.
 # TODO Create GUI using Tkinter.
 
@@ -25,11 +25,9 @@ class BookStore:
 
     def view_all(self):
         """Function displays all books available in stock if there are any."""
-
         check_all = self.db.get_all()
         if check_all:
-            headers = ['ID', 'Title', 'Author', 'Qty']
-            print(tabulate(check_all, headers=headers, tablefmt='fancy_grid'))
+            print_tabulate(check_all)
         else:
             switch_message(0)
 
@@ -138,17 +136,32 @@ class BookStore:
 
     @staticmethod
     def show_low_stock():
-        print_low_stock()
+        """Function prints selected low stock books and write to file"""
         content = db.select_low_stock()
-
         if content:
-            choice = input('\nWould you like to generate a report with displayed records? Y / N: ').lower()
+            print_tabulate(content)
+        else:
+            switch_message(0)
 
-            if choice == 'Y'.lower():
-                print('\nThis option do not work yet, will be fixed soon.')
-                # generate_report() - Need to be fixed.
-            else:
-                switch_message(2)
+    @staticmethod
+    def generate_report():
+        while True:
+            choice = input(f'What type of the file would you like to generate a report to? :\n'
+                           '1 - CSV\n'
+                           '2 - TXT\n'
+                           ':')
+            match choice:
+                case '1':
+                    write_to_csv()
+                    switch_message(5)
+                    break
+                case '2':
+                    write_to_txt()
+                    switch_message(5)
+                    break
+                case _:
+                    switch_message(2)
+                    break
 
 
 # =============== Class Database ==============
@@ -176,7 +189,7 @@ class Database:
         """This method inserts all compulsory books from the list into a table."""
 
         compulsory_books = [(1, 'A Tale of Two Cities', 'Charles Dickens', 30),
-                            (2, 'Harry Potter and the Philosopher`s Stone', 'J.K. Rowling', 5),
+                            (2, 'Harry Potter and the Philosopher`s Stone', 'J.K. Rowling', 1),
                             (3, 'The Lion, the Witch and the Wardrobe', 'C.S. Lewis', 25),
                             (4, 'The Lord of the Rings', 'J.R.R. Tolkien', 37),
                             (5, 'Alice in Wonderland', 'Lewis Carroll', 4)]
@@ -226,6 +239,9 @@ class Database:
         """Method selects books with stock lower than 5"""
         return self.cursor.execute(f'SELECT * FROM bookstore WHERE Qty < 5').fetchall()
 
+    # def if_exists(self):
+    #     return self.cursor.execute(f'SELECT Title FROM bookstore WHERE Title =  5').fetchall()
+
 
 # ================= Functions ================
 def check_str_input(value):
@@ -252,25 +268,27 @@ def search(subject, value):
     else:
         switch_message(4)
 
-def print_low_stock():
-    """Function prints selected low stock books and write to file"""
-    content = db.select_low_stock()
-    if content:
-        print_tabulate(content)
-    else:
-        switch_message(0)
 
-# def generate_report():
-#     headers = ['ID', 'Title', 'Author', 'Qty']
-#     content = db.select_low_stock()
-#     with open('Report.txt', 'w') as output_file:
-#         text = (tabulate(content, headers=headers, tablefmt='fancy_grid'))
-#         output_file.write(text)
-#         print('\nFile has been generated')
+def write_to_txt():
+    """Function generate and write data to TXT file in tabulate"""
+    with open('Report.txt', 'w', encoding="utf-8") as output_file:
+        headers = ['ID', 'Title', 'Author', 'Qty']
+        content = db.get_all()
+        output_file.write((tabulate(content, headers=headers, tablefmt='fancy_grid')))
+def write_to_csv():
+    """Function generate and write data to CSV file"""
+    with open('Report.csv', 'w', encoding="utf-8", newline='') as output_file:
+        headers = ['ID', 'Title', 'Author', 'Qty']
+        content = db.get_all()
+        writer = csv.writer(output_file)
+        writer.writerow(headers)
+        writer.writerows(content)
+
 def print_tabulate(content):
     """Function prints selected books in tabulate mode"""
     headers = ['ID', 'Title', 'Author', 'Qty']
     print(tabulate(content, headers=headers, tablefmt='fancy_grid'))
+
 
 def switch_message(value):
     """Function contains different print messages and use them in various parts of the program."""
@@ -279,7 +297,8 @@ def switch_message(value):
         1: "\n**********  Invalid input. Please try again.  **********\n",
         2: "\n**********  You are redirecting to the main menu.  **********\n",
         3: "\n**********  This ID does not exist. Please try again.  **********\n",
-        4: "\n**********  The book you are looking for cannot be found.  **********\n"
+        4: "\n**********  The book you are looking for cannot be found.  **********\n",
+        5: "\n**********  Report file has been generated.  **********\n"
     }
     return print(switcher.get(value))
 
@@ -315,9 +334,10 @@ def option_six():
 
 
 def option_seven():
+    bookstore.generate_report()
+
+def option_eight():
     pass
-
-
 def option_zero():
     print('Thank you')
     db.db_commit()
@@ -325,41 +345,46 @@ def option_zero():
     exit()
 
 
-def main():
+def menu():
     print('\n**********  Welcome in the Bookstore  **********')
     print(f'\n1 - Display all books\n'
           '2 - Add a new book\n'
           '3 - Search books\n'
           '4 - Update book information\n'
           '5 - Delete a book\n'
-          '6 - Low stock books - report\n'
-          '7 - Order books\n'
+          '6 - Show low stock books only\n'
+          '7 - Generate a report\n'
+          '8 - Order books\n'
           '0 - Exit\n')
 
-    # if __name__ == "__main__":
-    #     main()
+
+def main():
+    while True:
+        menu()
+        menu_choice = input('Please choose one of the following options:\n')
+
+        match menu_choice:
+            case '1':
+                option_one()
+            case '2':
+                option_two()
+            case '3':
+                option_three()
+            case '4':
+                option_four()
+            case '5':
+                option_five()
+            case '6':
+                option_six()
+            case '7':
+                option_seven()
+            case '8':
+                option_eight()
+            case '0':
+                option_zero()
+            case _:
+                switch_message(1)
 
 
-while True:
+if __name__ == "__main__":
     main()
-    menu_choice = input('Please choose one of the following options:\n')
-
-    match menu_choice:
-        case '1':
-            option_one()
-        case '2':
-            option_two()
-        case '3':
-            option_three()
-        case '4':
-            option_four()
-        case '5':
-            option_five()
-        case '6':
-            option_six()
-        case '7':
-            option_seven()
-        case '0':
-            option_zero()
-        case _:
-            switch_message(1)
