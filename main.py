@@ -1,17 +1,17 @@
 import sqlite3
 from tabulate import tabulate
 import csv
+import functions as func
 
 
-# TODO Check if entered book title already exists in database.
 # TODO Separate classes to modules.
 # TODO Use Sphinx to create a documentations
-# TODO Create a function to send an email and order more books ( use smtplib library ) - in progress.
 # TODO Create GUI using Tkinter.
 
 
 # ================= Class Book ================
 class Book:
+    """Class to create a book objects. Used to represent database records"""
     def __init__(self, title, author, qty):
         self.title = title
         self.author = author
@@ -20,11 +20,13 @@ class Book:
 
 # =============== Class BookStore ==============
 class BookStore:
+    """Class allows the user to modify and view records"""
     def __init__(self, database):
         self.db = database
 
     def view_all(self):
-        """Function displays all books available in stock if there are any."""
+        """Function displays all books available in stock if there are any, otherwise display a message saying 'No
+        books to display' """
         check_all = self.db.get_all()
         if check_all:
             print_tabulate(check_all)
@@ -32,9 +34,8 @@ class BookStore:
             switch_message(0)
 
     def add_book(self):
-        """Taking user inputs required to add a new book to stock and validating if input is not empty, or it is
-        not a digit."""
-
+        """Taking user inputs required to create an object and add a new book to stock.
+        Validating if input is empty, if it is a string or digit."""
         book_title = input('Enter the title of the new book: ').strip().title()
         while not check_str_input(book_title):
             switch_message(1)
@@ -56,8 +57,7 @@ class BookStore:
         print(f'\nNew book "{book.title}" has been added to stock.')
 
     def search_book(self):
-        """This function allow user to search specific book by title or author."""
-
+        """This function allow user to search specific book by title or author and then display results."""
         while self.db.check_if_empty():
             choice = input('\nPlease choose from following options how would you like to search a book:\n'
                            '1 - Search by title\n'
@@ -69,34 +69,29 @@ class BookStore:
                 subject = 'Title'
                 book_title = input('Enter the title of the book you would like to search for: ')
                 search(subject, book_title)
-
             elif choice == '2':
                 subject = 'Author'
                 book_author = input('Enter the author of the book you would like to search for: ')
                 search(subject, book_author)
-
             elif choice == '0':
                 switch_message(2)
                 break
             else:
                 switch_message(1)
-
         switch_message(0)
 
     def update_info(self):
-        """Function updates an information for chosen book"""
-
+        """Function updates quantity for chosen book.If book with entered ID does not exist, then an error message
+        will be displayed. """
         self.view_all()
         while db.check_if_empty():
             try:
                 chosen_id = int(input('\nPlease enter the book ID you would like to update an information for:\n'))
                 content = db.select_id(chosen_id)
-
                 if content:
                     try:
                         new_quantity = int(input('\nPlease enter the new stock quantity for this book: '))
                         db.update_book_qty(new_quantity, chosen_id)
-
                         print(f'\nStock quantity has been changed to {new_quantity} for your chosen book')
                         break
                     except ValueError:
@@ -106,23 +101,20 @@ class BookStore:
                 switch_message(1)
 
     def delete_book(self):
-        """Function deletes chosen book from stock"""
-
+        """Function deletes chosen book from stock. If book with entered ID does not exist, then an error message
+        will be displayed."""
         self.view_all()
         while db.check_if_empty():
             try:
                 book_to_remove = int(input('Please enter the book ID you would like to remove from stock:\n'))
                 content = db.select_id(book_to_remove)
-
                 if content:
                     choice = input('Are you sure you want to delete this item? Y / N: ').lower()
-
                     if choice == 'Y'.lower():
                         db.delete_id(book_to_remove)
                         print(f'\nYour chosen book with #ID{book_to_remove} has been removed.')
                         db.db_commit()
                         break
-
                     elif choice == 'N'.lower():
                         switch_message(2)
                         break
@@ -136,7 +128,7 @@ class BookStore:
 
     @staticmethod
     def show_low_stock():
-        """Function prints selected low stock books and write to file"""
+        """Function display selected low stock books"""
         content = db.select_low_stock()
         if content:
             print_tabulate(content)
@@ -145,6 +137,7 @@ class BookStore:
 
     @staticmethod
     def generate_report():
+        """Function generates reports and write data to file. User can choose between CSV and TXT file."""
         while True:
             choice = input(f'What type of the file would you like to generate a report to? :\n'
                            '1 - CSV\n'
@@ -160,12 +153,25 @@ class BookStore:
                     switch_message(5)
                     break
                 case _:
-                    switch_message(2)
-                    break
+                    switch_message(1)
+                    continue
+
+    @staticmethod
+    def order_books():
+        """Function allows a user to send an email"""
+        while True:
+            receiver_email = input('Please enter the receiver email address:')
+            if func.validate_email(receiver_email):
+                email_content = input('Please enter the content of the email you would like to send: ')
+                print('\nSending email.....')
+                func.send_email(receiver_email, email_content)
+                break
 
 
 # =============== Class Database ==============
 class Database:
+    """Class to initialise SQlite database."""
+
     def __init__(self):
         self.db = sqlite3.connect('bookstore_db')
         self.cursor = self.db.cursor()
@@ -180,6 +186,7 @@ class Database:
         self.db.close()
 
     def create_table(self):
+        """Method creates a table with four attributes, like ID, Title, Author and Qty. """
         self.cursor.execute(
             'CREATE TABLE IF NOT EXISTS bookstore(ID INTEGER PRIMARY KEY, Title TEXT, '
             'Author TEXT, Qty \n '
@@ -216,7 +223,7 @@ class Database:
         self.cursor.execute(script, (book.title, book.author, book.qty))
 
     def get_book(self, subject, word):
-        """Method returns a list of selected records from database"""
+        """Method returns a list of selected specific records from database"""
         content = []
         for row in self.cursor.execute(
                 f'''SELECT * FROM bookstore WHERE {subject} LIKE "%{word}%" '''):
@@ -228,6 +235,7 @@ class Database:
         return self.cursor.execute(f'SELECT ID FROM bookstore WHERE ID = {value}').fetchall()
 
     def delete_id(self, book_to_remove):
+        """Method deletes a book from database with selected by user ID"""
         self.cursor.execute(f'''DELETE FROM bookstore WHERE ID = {book_to_remove}''')
 
     def update_book_qty(self, book_qty, rowid):
@@ -239,11 +247,9 @@ class Database:
         """Method selects books with stock lower than 5"""
         return self.cursor.execute(f'SELECT * FROM bookstore WHERE Qty < 5').fetchall()
 
-    # def if_exists(self):
-    #     return self.cursor.execute(f'SELECT Title FROM bookstore WHERE Title =  5').fetchall()
-
 
 # ================= Functions ================
+
 def check_str_input(value):
     """Function checks/validate user input"""
     if value == '' or value.isdigit():
@@ -261,7 +267,8 @@ def check_int_input(value):
 
 
 def search(subject, value):
-    """Function takes arguments from other function and display them in tabulate"""
+    """Function takes arguments from other function, search book by Author or Title, depends on the user requirements
+    and display results in tabulate """
     content = db.get_book(subject, value)
     if content:
         print_tabulate(content)
@@ -270,19 +277,22 @@ def search(subject, value):
 
 
 def write_to_txt():
-    """Function generate and write data to TXT file in tabulate"""
+    """Function generates and write data to TXT file in tabulate"""
     with open('Report.txt', 'w', encoding="utf-8") as output_file:
         headers = ['ID', 'Title', 'Author', 'Qty']
         content = db.get_all()
         output_file.write((tabulate(content, headers=headers, tablefmt='fancy_grid')))
+
+
 def write_to_csv():
-    """Function generate and write data to CSV file"""
+    """Function generates and write data to CSV file"""
     with open('Report.csv', 'w', encoding="utf-8", newline='') as output_file:
         headers = ['ID', 'Title', 'Author', 'Qty']
         content = db.get_all()
         writer = csv.writer(output_file)
         writer.writerow(headers)
         writer.writerows(content)
+
 
 def print_tabulate(content):
     """Function prints selected books in tabulate mode"""
@@ -336,8 +346,11 @@ def option_six():
 def option_seven():
     bookstore.generate_report()
 
+
 def option_eight():
-    pass
+    bookstore.order_books()
+
+
 def option_zero():
     print('Thank you')
     db.db_commit()
@@ -354,7 +367,7 @@ def menu():
           '5 - Delete a book\n'
           '6 - Show low stock books only\n'
           '7 - Generate a report\n'
-          '8 - Order books\n'
+          '8 - Sent an email - Order books\n'
           '0 - Exit\n')
 
 
