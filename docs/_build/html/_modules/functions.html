@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>functions &mdash; Bookstore - Capstone V 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Bookstore - Capstone V
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Bookstore - Capstone V</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">yagmail</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">database</span> <span class="k">as</span> <span class="nn">dtbs</span>
+<span class="kn">import</span> <span class="nn">bookstore</span> <span class="k">as</span> <span class="nn">bkst</span>
+
+
+<span class="c1"># ================= Functions ================</span>
+
+<div class="viewcode-block" id="check_str_input"><a class="viewcode-back" href="../functions.html#functions.check_str_input">[docs]</a><span class="k">def</span> <span class="nf">check_str_input</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function checks/validate user input&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">value</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="check_int_input"><a class="viewcode-back" href="../functions.html#functions.check_int_input">[docs]</a><span class="k">def</span> <span class="nf">check_int_input</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function checks/validate user input&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="search"><a class="viewcode-back" href="../functions.html#functions.search">[docs]</a><span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function takes arguments from other function, search book by Author or Title, depends on the user requirements</span>
+<span class="sd">    and display results in tabulate &quot;&quot;&quot;</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_book</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
+        <span class="n">print_tabulate</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">switch_message</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_to_txt"><a class="viewcode-back" href="../functions.html#functions.write_to_txt">[docs]</a><span class="k">def</span> <span class="nf">write_to_txt</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function generates and write data to TXT file in tabulate&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;Report.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;Qty&#39;</span><span class="p">]</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="n">tabulate</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="write_to_csv"><a class="viewcode-back" href="../functions.html#functions.write_to_csv">[docs]</a><span class="k">def</span> <span class="nf">write_to_csv</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function generates and write data to CSV file&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;Report.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;Qty&#39;</span><span class="p">]</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_tabulate"><a class="viewcode-back" href="../functions.html#functions.print_tabulate">[docs]</a><span class="k">def</span> <span class="nf">print_tabulate</span><span class="p">(</span><span class="n">content</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function prints selected books in tabulate mode&quot;&quot;&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Title&#39;</span><span class="p">,</span> <span class="s1">&#39;Author&#39;</span><span class="p">,</span> <span class="s1">&#39;Qty&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="switch_message"><a class="viewcode-back" href="../functions.html#functions.switch_message">[docs]</a><span class="k">def</span> <span class="nf">switch_message</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function contains different print messages and use them in various parts of the program.&quot;&quot;&quot;</span>
+    <span class="n">switcher</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  No books to display.  **********</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  Invalid input. Please try again.  **********</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  You are redirecting to the main menu.  **********</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  This ID does not exist. Please try again.  **********</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  The book you are looking for cannot be found.  **********</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">**********  Report file has been generated.  **********</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nb">print</span><span class="p">(</span><span class="n">switcher</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="send_email"><a class="viewcode-back" href="../functions.html#functions.send_email">[docs]</a><span class="k">def</span> <span class="nf">send_email</span><span class="p">(</span><span class="n">receiver</span><span class="p">,</span> <span class="n">email_content</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function uses yagmail.SMTP protocol allowing user to send an email&quot;&quot;&quot;</span>
+    <span class="n">user_email</span> <span class="o">=</span> <span class="s2">&quot;bookstore.hyperion@gmail.com&quot;</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;nwbyaqxmqhpjnbfd&quot;</span>
+    <span class="n">msg_header</span> <span class="o">=</span> <span class="s2">&quot;Bookstore order&quot;</span>
+
+    <span class="n">receiver_email</span> <span class="o">=</span> <span class="n">receiver</span>
+    <span class="n">msg_content</span> <span class="o">=</span> <span class="n">email_content</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">yag</span> <span class="o">=</span> <span class="n">yagmail</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="n">user_email</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+        <span class="n">yag</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">receiver_email</span><span class="p">,</span> <span class="n">msg_header</span><span class="p">,</span> <span class="n">msg_content</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Email has been sent successfully!</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ConnectionError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failure, email cannot be sent. Please try again.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_email"><a class="viewcode-back" href="../functions.html#functions.validate_email">[docs]</a><span class="k">def</span> <span class="nf">validate_email</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function validates entered user email address&quot;&quot;&quot;</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b&#39;</span>
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid email address. Please try again.&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">dtbs</span><span class="o">.</span><span class="n">Database</span><span class="p">()</span>
+<span class="n">bookstore</span> <span class="o">=</span> <span class="n">bkst</span><span class="o">.</span><span class="n">BookStore</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Adam Latosch.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
