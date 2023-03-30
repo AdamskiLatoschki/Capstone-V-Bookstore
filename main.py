@@ -2,8 +2,7 @@ import functions as func
 import database as dtbs
 import bookstore as bkst
 
-# TODO Separate classes to modules.
-# TODO Use Sphinx to create a documentations
+
 # TODO Create GUI using Tkinter.
 
 
@@ -59,9 +58,9 @@ def menu():
           '3 - Search books\n'
           '4 - Update book information\n'
           '5 - Delete a book\n'
-          '6 - Show low stock books only\n'
+          '6 - Show low stock books\n'
           '7 - Generate a report\n'
-          '8 - Sent an email - Order books\n'
+          '8 - Sent an email / Order books\n'
           '0 - Exit\n')
 
 
