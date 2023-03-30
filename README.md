@@ -50,12 +50,25 @@ python main.py
 
 From this menu, the user is able to enter the number of the option that they wish to access. This will then prompt additional options to appear:
 
-    Add book - Takes user inputs like title, author and qty and insert created book into database.
-    Update book - Allows the user to edit information of a book that is already within the database.
-    View all - Display a table with all the books in the inventory.
-    Delete book - Allows the user to delete a specific book from the database by selecting a book ID.
-    Search book - Allows the user to search for a book in the database using its title or author and display a result in a table.
-    Exit - Exits the programme.
+
+- Display all books - Display a table with all the books in the inventory.
+
+- Add a new book - Takes user inputs like title, author and qty and insert created book into database.
+    
+- Search books - Allows the user to search for a book in the database using its title or author and display a result in a table.
+    
+- Update book information - Allows the user to edit information of a book that is already within the database.
+    
+- Delete a book - Allows the user to delete a specific book from the database by selecting a book ID.
+    
+- Show low stock books - Display low stock books in the inventory.
+    
+- Generate a report - Generate a report to file with all the books in the inventory. Allow user to choose between CSV and TXT file.
+   
+- Sent an email / Order books - Allow user to enter email address and email content to send an email to order books.
+    
+- Exit - Exits the programme.    
+    
 
 
 
