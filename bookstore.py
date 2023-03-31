@@ -2,24 +2,28 @@ import functions as func
 import book as bk
 import database as dtbs
 
+db = dtbs.Database()
+
 
 # =============== Class BookStore ==============
 class BookStore:
     """Class allows the user to modify and view records"""
 
-    def __init__(self, database):
-        self.db = database
+    # def __init__(self, database):
+    #     self.db = database
 
-    def view_all(self):
+    @staticmethod
+    def view_all():
         """Function displays all books available in stock if there are any, otherwise display a message saying 'No
         books to display' """
-        check_all = self.db.get_all()
+        check_all = db.get_all()
         if check_all:
             func.print_tabulate(check_all)
         else:
             func.switch_message(0)
 
-    def add_book(self):
+    @staticmethod
+    def add_book():
         """Taking user inputs required to create an object and add a new book to stock.
         Validating if input is empty, if it is a string or digit."""
         book_title = input('Enter the title of the new book: ').strip().title()
@@ -38,13 +42,14 @@ class BookStore:
             book_quantity = input('Enter the quantity of the new book you would like to add to stock: ').strip()
 
         book = bk.Book(book_title, book_author, book_quantity)
-        self.db.insert_values(book)
-        self.db.db_commit()
+        db.insert_values(book)
+        db.db_commit()
         print(f'\nNew book "{book.title}" has been added to stock.')
 
-    def search_book(self):
+    @staticmethod
+    def search_book():
         """This function allow user to search specific book by title or author and then display results."""
-        while self.db.check_if_empty():
+        while db.check_if_empty():
             choice = input('\nPlease choose from following options how would you like to search a book:\n'
                            '1 - Search by title\n'
                            '2 - Search by author\n'
@@ -152,7 +157,3 @@ class BookStore:
                 print('\nSending email.....')
                 func.send_email(receiver_email, email_content)
                 break
-
-
-db = dtbs.Database()
-bookstore = BookStore(db)

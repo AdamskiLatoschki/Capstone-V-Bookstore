@@ -2,12 +2,11 @@ import functions as func
 import database as dtbs
 import bookstore as bkst
 
-
 # TODO Create GUI using Tkinter.
 
 
 db = dtbs.Database()
-bookstore = bkst.BookStore(db)
+bookstore = bkst.BookStore()
 
 
 # ================= Main Program ================
@@ -52,7 +51,7 @@ def option_zero():
 
 
 def menu():
-    print('\n**********  Welcome in the Bookstore  **********')
+    print('\n**********  MAIN MENU  **********')
     print(f'\n1 - Display all books\n'
           '2 - Add a new book\n'
           '3 - Search books\n'

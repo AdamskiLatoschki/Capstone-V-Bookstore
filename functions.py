@@ -5,6 +5,9 @@ import csv
 import database as dtbs
 import bookstore as bkst
 
+db = dtbs.Database()
+bookstore = bkst.BookStore()
+
 
 # ================= Functions ================
 
@@ -66,7 +69,11 @@ def switch_message(value):
         2: "\n**********  You are redirecting to the main menu.  **********\n",
         3: "\n**********  This ID does not exist. Please try again.  **********\n",
         4: "\n**********  The book you are looking for cannot be found.  **********\n",
-        5: "\n**********  Report file has been generated.  **********\n"
+        5: "\n**********  Report file has been generated.  **********\n",
+        6: "\n**********  Email has been sent successfully!  **********\n",
+        7: "\n**********  Failure, email cannot be sent. Please try again.  **********\n",
+        8: "\n**********  Invalid email address. Please try again.  **********\n"
+
     }
     return print(switcher.get(value))
 
@@ -83,9 +90,9 @@ def send_email(receiver, email_content):
     try:
         yag = yagmail.SMTP(user_email, password)
         yag.send(receiver_email, msg_header, msg_content)
-        print('\nEmail has been sent successfully!\n')
+        switch_message(6)
     except ConnectionError:
-        print('Failure, email cannot be sent. Please try again.')
+        switch_message(7)
 
 
 def validate_email(email):
@@ -94,8 +101,4 @@ def validate_email(email):
     if re.match(pattern, email):
         return True
     else:
-        print("Invalid email address. Please try again.")
-
-
-db = dtbs.Database()
-bookstore = bkst.BookStore(db)
+        switch_message(8)

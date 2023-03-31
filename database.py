@@ -35,7 +35,7 @@ class Database:
                             (5, 'Alice in Wonderland', 'Lewis Carroll', 4)]
 
         self.cursor.executemany(
-            '''INSERT OR REPLACE INTO bookstore(ID, Title, Author, Qty) VALUES(?, ?, ?, ?)''',
+            '''INSERT OR IGNORE INTO bookstore(ID, Title, Author, Qty) VALUES(?, ?, ?, ?)''',
             compulsory_books)
 
     def check_if_empty(self):
@@ -70,11 +70,13 @@ class Database:
     def delete_id(self, book_to_remove):
         """Method deletes a book from database with selected by user ID"""
         self.cursor.execute(f'''DELETE FROM bookstore WHERE ID = {book_to_remove}''')
+        self.db_commit()
 
     def update_book_qty(self, book_qty, rowid):
         """Method updates qty information for the book with selected ID"""
         self.cursor.execute(
             f'''UPDATE bookstore SET qty = {book_qty} WHERE rowid = {rowid} ''')
+        self.db_commit()
 
     def select_low_stock(self):
         """Method selects books with stock lower than 5"""
